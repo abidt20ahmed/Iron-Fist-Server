@@ -47,40 +47,19 @@ async function run() {
             res.send(result)
         });
         
+        app.patch('/roles/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    role: 'Instructor'
+                },
+            };
+
+            const result = await rolesCollection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
        
-        app.get('/classes', async (req, res) => {
-            console.log(req.params.type);
-            
-            const result = await classCollection.find({}).sort({ date: -1 }).toArray();
-            res.send(result);
-            
-        })
-
-
-        app.get('/roles', async (req, res) => {
-            console.log(req.params.type);
-            
-            const result = await rolesCollection.find({}).sort({ date: -1 }).toArray();
-            res.send(result);
-            
-        })
-
-
-         app.get('/myClasses/:email', async (req, res) => {
-            if(req.query.sort == 'asc'){
-                const result = await classCollection.find({ email: req.params.email}).sort({ price: 1 }).toArray();
-                res.send(result);
-                
-            }
-            else{
-                const result = await classCollection.find({ email: req.params.email}).sort({ price: -1 }).toArray();
-                res.send(result);
-            }
-            
-        })
-        
-        
-        
         
         
         // Send a ping to confirm a successful connection
