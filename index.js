@@ -38,7 +38,7 @@ async function run() {
             console.log('req',req);
             res.send(result)
         });
-
+        
         app.post('/postRoles', async (req, res) => {
             const body = req.body;
             console.log('body:',body);
@@ -46,7 +46,7 @@ async function run() {
             console.log('req',req);
             res.send(result)
         });
-
+        
         app.patch('/status/:id', async(req, res) => {
             const body = req.body;
             console.log('clicked', body);
@@ -55,7 +55,7 @@ async function run() {
             const options = { upsert: true };
             const updatedStatus = {
                 $set: {
-                     status: body.status
+                    status: body.status
                 }
             }
             const result = await classCollection.updateOne(filter, updatedStatus, options)
@@ -69,27 +69,88 @@ async function run() {
             const options = { upsert: true };
             const updatedStatus = {
                 $set: {
-                     feedback: body.feedback
+                    feedback: body.feedback
                 }
             }
             const result = await classCollection.updateOne(filter, updatedStatus, options)
             res.send(result)
         })
         
-        app.patch('/roles/:id', async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const options = { upsert: true };
+        // app.patch('/instructor/roles/:id', async (req, res) => {
+        //     console.log('update roles clicked', req.params.id);
+        //     const id = req.params.id;
+        //     const filter = { _id: new ObjectId(id) };
+        //     // const options = { upsert: true };
+        //     const updateDoc = {
+        //         $set: {
+        //             role: 'Admin'
+        //         },
+        //     };
+        
+        //     const result = await rolesCollection.updateOne(filter, updateDoc);
+        //     res.send(result)
+        // })
+        
+        
+        app.patch('/admin/roles/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {
+                    role: 'Admin'
+                },
+            };
+            
+            const result = await rolesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+        app.patch('/instructor/roles/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
             const updateDoc = {
                 $set: {
                     role: 'Instructor'
                 },
             };
-
+            
             const result = await rolesCollection.updateOne(filter, updateDoc);
-            res.send(result)
-        })
-      
+            res.send(result);
+        });
+        
+        
+        
+        // app.patch('/updateClass/:id', async(req, res) => {
+        //     const id = req.params.id;
+        //     console.log('body',req.body);
+        //     const filter = {_id: new ObjectId(id)}
+        //     const updateDoc = { $set: req.body };
+        //     // console.log(updatedToy.status);
+        //     // const updateDoc = {
+        //     //     $set: {
+        //     //         status: updatedToy.status
+        //     //     },
+        //     // };
+        //     const result = await classCollection.updateOne(filter, updateDoc);
+        //     res.send(result)
+        // })
+        // app.patch('/updateClass/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     console.log(req.params.id);
+        //     console.log('req.body',req.body);
+        //     const filter = { _id: new ObjectId(id) };
+        //     const updateDoc = { $set: {
+        //         role: req.body.role
+        //     } };
+        
+        //     try {
+        //         const result = await classCollection.updateMany(filter, updateDoc);
+        //         res.send(result);
+        //     } catch (error) {
+        //         console.error('Error updating documents:', error);
+        //         res.status(500).send('Error updating documents');
+        //     }
+        // });
         
         app.get('/classes', async (req, res) => {
             console.log(req.params.type);
@@ -98,8 +159,6 @@ async function run() {
             res.send(result);
             
         })
-
-
         app.get('/roles', async (req, res) => {
             console.log(req.params.type);
             
@@ -107,9 +166,31 @@ async function run() {
             res.send(result);
             
         })
-
-
-         app.get('/myClasses/:email', async (req, res) => {
+        
+        
+        app.get('/roles/:email', async (req, res) => {
+            console.log(req.params.type);
+            
+            const result = await rolesCollection.find({}).sort({ date: -1 }).toArray();
+            res.send(result);
+            
+        })
+        
+        
+        app.get('/role/:email', async (req, res) => {
+            const email = req.params.email;
+            
+            try {
+                const result = await rolesCollection.findOne({ email: email });
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                res.status(500).send('Error fetching data');
+            }
+        });
+        
+        
+        app.get('/myClasses/:email', async (req, res) => {
             if(req.query.sort == 'asc'){
                 const result = await classCollection.find({ email: req.params.email}).sort({ price: 1 }).toArray();
                 res.send(result);
@@ -123,7 +204,52 @@ async function run() {
         })
         
         
-
+        /* const indexKeys = { productName: 1, brand: 1 };
+        const indexOptions = { name: 'brandName '};
+        const result = await toyCollection.createIndex(indexKeys, indexOptions)
+        
+        app.get('/allToy/:productName', async (req, res) => {
+            const searchText = req.params.productName;
+            // const result = await toyCollection.find({ productName: req.params.productName}).toArray();
+            const result = await toyCollection.find({
+                $or: [
+                    { productName: {$regex: searchText, $options: 'i'}},
+                    { brand: { $regex: searchText, $options: 'i'}}
+                ]
+            }).toArray();
+            res.send(result);
+        })
+        
+        
+        app.get('/myToys/:email', async (req, res) => {
+            if(req.query.sort == 'asc'){
+                const result = await toyCollection.find({ email: req.params.email}).sort({ price: 1 }).toArray();
+                res.send(result);
+                
+            }
+            else{
+                const result = await toyCollection.find({ email: req.params.email}).sort({ price: -1 }).toArray();
+                res.send(result);
+            }
+            
+        })
+        
+        
+        app.get('/details/:id', async (req, res) => {
+            console.log(req.params.id);
+            const id = req.params.id;
+            const result = await toyCollection.findOne({_id: new ObjectId(id)});
+            res.send(result)
+        })
+        
+        
+        app.delete('/myToys/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id)}
+            const result = await toyCollection.deleteOne(query);
+            res.send(result)
+        }) */
+        
         
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
