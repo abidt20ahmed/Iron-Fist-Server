@@ -39,10 +39,12 @@ async function run() {
             res.send(result)
         });
         
-        app.post('/postRoles', async (req, res) => {
+        app.post('/postRoles/:email', async (req, res) => {
             const body = req.body;
+            const email = req.params.email;
             console.log('body:',body);
             const result = await rolesCollection.insertOne(body);
+
             console.log('req',req);
             res.send(result)
         });
@@ -76,23 +78,10 @@ async function run() {
             res.send(result)
         })
         
-        // app.patch('/instructor/roles/:id', async (req, res) => {
-        //     console.log('update roles clicked', req.params.id);
-        //     const id = req.params.id;
-        //     const filter = { _id: new ObjectId(id) };
-        //     // const options = { upsert: true };
-        //     const updateDoc = {
-        //         $set: {
-        //             role: 'Admin'
-        //         },
-        //     };
-        
-        //     const result = await rolesCollection.updateOne(filter, updateDoc);
-        //     res.send(result)
-        // })
         
         
         app.patch('/admin/roles/:email', async (req, res) => {
+
             const email = req.params.email;
             const filter = { email: email };
             const updateDoc = {
@@ -102,6 +91,7 @@ async function run() {
             };
             
             const result = await rolesCollection.updateOne(filter, updateDoc);
+            console.log(result, email);
             res.send(result);
         });
         
@@ -115,10 +105,10 @@ async function run() {
             };
             
             const result = await rolesCollection.updateOne(filter, updateDoc);
+            console.log(result, email);
             res.send(result);
         });
-        
-        
+
         
         // app.patch('/updateClass/:id', async(req, res) => {
         //     const id = req.params.id;
@@ -163,6 +153,7 @@ async function run() {
             console.log(req.params.type);
             
             const result = await rolesCollection.find({}).sort({ date: -1 }).toArray();
+            console.log(result);
             res.send(result);
             
         })     
@@ -180,6 +171,17 @@ async function run() {
             
             try {
                 const result = await rolesCollection.findOne({ _id: new ObjectId(id) });
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                res.status(500).send('Error fetching data');
+            }
+        });
+        app.get('/role/:email', async (req, res) => {
+            const email = req.params.email;
+            
+            try {
+                const result = await rolesCollection.findOne({ email: new ObjectId(email) });
                 res.send(result);
             } catch (error) {
                 console.error('Error fetching data:', error);
