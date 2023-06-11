@@ -46,10 +46,40 @@ async function run() {
             console.log('req',req);
             res.send(result)
         });
+
+        app.patch('/status/:id', async(req, res) => {
+            const body = req.body;
+            console.log('clicked', body);
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const options = { upsert: true };
+            const updatedStatus = {
+                $set: {
+                     status: body.status
+                }
+            }
+            const result = await classCollection.updateOne(filter, updatedStatus, options)
+            res.send(result)
+        })
+        app.patch('/feedback/:id', async(req, res) => {
+            const body = req.body;
+            console.log('clicked', body);
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const options = { upsert: true };
+            const updatedStatus = {
+                $set: {
+                     feedback: body.feedback
+                }
+            }
+            const result = await classCollection.updateOne(filter, updatedStatus, options)
+            res.send(result)
+        })
         
         app.patch('/roles/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
             const updateDoc = {
                 $set: {
                     role: 'Instructor'
@@ -59,8 +89,41 @@ async function run() {
             const result = await rolesCollection.updateOne(filter, updateDoc);
             res.send(result)
         })
-       
+      
         
+        app.get('/classes', async (req, res) => {
+            console.log(req.params.type);
+            
+            const result = await classCollection.find({}).sort({ date: -1 }).toArray();
+            res.send(result);
+            
+        })
+
+
+        app.get('/roles', async (req, res) => {
+            console.log(req.params.type);
+            
+            const result = await rolesCollection.find({}).sort({ date: -1 }).toArray();
+            res.send(result);
+            
+        })
+
+
+         app.get('/myClasses/:email', async (req, res) => {
+            if(req.query.sort == 'asc'){
+                const result = await classCollection.find({ email: req.params.email}).sort({ price: 1 }).toArray();
+                res.send(result);
+                
+            }
+            else{
+                const result = await classCollection.find({ email: req.params.email}).sort({ price: -1 }).toArray();
+                res.send(result);
+            }
+            
+        })
+        
+        
+
         
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
