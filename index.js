@@ -104,7 +104,7 @@ async function run() {
             const result = await rolesCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
-
+        
         app.patch('/instructor/roles/:email', async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
@@ -165,29 +165,58 @@ async function run() {
             const result = await rolesCollection.find({}).sort({ date: -1 }).toArray();
             res.send(result);
             
-        })
+        })     
         
-        
-        app.get('/roles/:email', async (req, res) => {
-            console.log(req.params.type);
+        //? app.get('/roles/:email', async (req, res) => {
+        //?    console.log(req.params.type);
+        //?    const email = req.params.email
+        //?    const result = await rolesCollection.findOne({ email: new ObjectId(email) });
+        //?    res.send(result);
             
-            const result = await rolesCollection.find({}).sort({ date: -1 }).toArray();
-            res.send(result);
-            
-        })
-        
-        
-        app.get('/role/:email', async (req, res) => {
-            const email = req.params.email;
+        // })
+
+        app.get('/role/:id', async (req, res) => {
+            const id = req.params.id;
             
             try {
-                const result = await rolesCollection.findOne({ email: email });
+                const result = await rolesCollection.findOne({ _id: new ObjectId(id) });
                 res.send(result);
             } catch (error) {
                 console.error('Error fetching data:', error);
                 res.status(500).send('Error fetching data');
             }
         });
+        
+        
+        // app.get('/role/:id', async (req, res) => {
+        //     const email = req.params.email;
+        
+        //     try {
+        //         const result = await rolesCollection.findOne({ _id: id });
+        //         res.send(result);
+        //     } catch (error) {
+        //         console.error('Error fetching data:', error);
+        //         res.status(500).send('Error fetching data');
+        //     }
+        // });
+        
+        
+        // app.get('/role/:id', async (req, res) => {
+        //     const id = req.params.id;
+        
+        //     try {
+        //         const result = await rolesCollection.findById(id);
+        //         if (result) {
+        //             res.send(result);
+        //         } else {
+        //             res.status(404).send('Data not found');
+        //         }
+        //     } catch (error) {
+        //         console.error('Error fetching data:', error);
+        //         res.status(500).send('Error fetching data');
+        //     }
+        // });
+        
         
         
         app.get('/myClasses/:email', async (req, res) => {
