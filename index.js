@@ -30,6 +30,8 @@ async function run() {
         
         const classCollection = client.db('ironFistUser').collection('classes')
         const rolesCollection = client.db('ironFistUser').collection('roles')
+        const selectedCollection = client.db('ironFistUser').collection('selected')
+        const enrolledCollection = client.db('ironFistUser').collection('purchased')
         
         app.post('/postClass', async (req, res) => {
             const body = req.body;
@@ -38,19 +40,58 @@ async function run() {
             console.log('req',req);
             res.send(result)
         });
-        
-        app.post('/postRoles/:email', async (req, res) => {
-            const body = req.body;
-            const email = req.params.email;
-            console.log('body:',body);
-            const result = await rolesCollection.insertOne(body);
 
+        app.post('/postSelected', async (req, res) => {
+            const body = req.body;
+            console.log('selected body:',body);
+            const result = await selectedCollection.insertOne(body);
             console.log('req',req);
             res.send(result)
         });
         
+        // app.post('/postRoles/:email', async (req, res) => {
+        //     const body = req.body;
+        //     const email = req.params.email;
+        //     console.log('body:',body);
+        //     const result = await rolesCollection.insertOne(body);
+        
+        //     console.log('req',req);
+        //     res.send(result)
+        // });
+        app.post('/postRoles/:email', async (req, res) => {
+            const body = req.body;
+            const email = req.params.email;
+ 
+            const existingEmail = await rolesCollection.findOne({ email: email });
+            if (existingEmail) {
+                return res.status(400).send('Email already exists');
+            }
+            
+            const result = await rolesCollection.insertOne(body);
+            console.log('req', req);
+            res.send(result);
+        });
+        
+        app.patch('/updateClass/:id', async(req, res) => {
+            const body = req.body;
+            console.log(req.params.id);
+            console.log('clicked', body);
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            // const options = { upsert: true };
+            const updatedStatus = {
+                $set: {
+                    ...body
+                }
+            }
+            const result = await classCollection.updateOne(filter, updatedStatus)
+            res.send(result)
+        })
+
+
         app.patch('/status/:id', async(req, res) => {
             const body = req.body;
+            console.log(req.params.id);
             console.log('clicked', body);
             const id = req.params.id;
             const filter = {_id: new ObjectId(id)};
@@ -63,6 +104,8 @@ async function run() {
             const result = await classCollection.updateOne(filter, updatedStatus, options)
             res.send(result)
         })
+
+
         app.patch('/feedback/:id', async(req, res) => {
             const body = req.body;
             console.log('clicked', body);
@@ -81,7 +124,7 @@ async function run() {
         
         
         app.patch('/admin/roles/:email', async (req, res) => {
-
+            
             const email = req.params.email;
             const filter = { email: email };
             const updateDoc = {
@@ -108,7 +151,7 @@ async function run() {
             console.log(result, email);
             res.send(result);
         });
-
+        
         
         // app.patch('/updateClass/:id', async(req, res) => {
         //     const id = req.params.id;
@@ -163,9 +206,9 @@ async function run() {
         //?    const email = req.params.email
         //?    const result = await rolesCollection.findOne({ email: new ObjectId(email) });
         //?    res.send(result);
-            
+        
         // })
-
+        
         app.get('/role/:id', async (req, res) => {
             const id = req.params.id;
             
@@ -177,11 +220,11 @@ async function run() {
                 res.status(500).send('Error fetching data');
             }
         });
-        app.get('/role/:email', async (req, res) => {
+        app.get('/role/email/:email', async (req, res) => {
             const email = req.params.email;
             
             try {
-                const result = await rolesCollection.findOne({ email: new ObjectId(email) });
+                const result = await rolesCollection.findOne({ email });
                 res.send(result);
             } catch (error) {
                 console.error('Error fetching data:', error);
