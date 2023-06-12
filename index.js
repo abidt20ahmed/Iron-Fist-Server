@@ -200,6 +200,14 @@ async function run() {
             res.send(result);
             
         })     
+        app.get('/selected', async (req, res) => {
+            console.log(req.params.type);
+            
+            const result = await selectedCollection.find({}).sort({ date: -1 }).toArray();
+            console.log(result);
+            res.send(result);
+            
+        })     
         
         //? app.get('/roles/:email', async (req, res) => {
         //?    console.log(req.params.type);
