@@ -49,15 +49,7 @@ async function run() {
             res.send(result)
         });
         
-        // app.post('/postRoles/:email', async (req, res) => {
-        //     const body = req.body;
-        //     const email = req.params.email;
-        //     console.log('body:',body);
-        //     const result = await rolesCollection.insertOne(body);
-        
-        //     console.log('req',req);
-        //     res.send(result)
-        // });
+     
         app.post('/postRoles/:email', async (req, res) => {
             const body = req.body;
             const email = req.params.email;
@@ -152,39 +144,6 @@ async function run() {
             res.send(result);
         });
         
-        
-        // app.patch('/updateClass/:id', async(req, res) => {
-        //     const id = req.params.id;
-        //     console.log('body',req.body);
-        //     const filter = {_id: new ObjectId(id)}
-        //     const updateDoc = { $set: req.body };
-        //     // console.log(updatedToy.status);
-        //     // const updateDoc = {
-        //     //     $set: {
-        //     //         status: updatedToy.status
-        //     //     },
-        //     // };
-        //     const result = await classCollection.updateOne(filter, updateDoc);
-        //     res.send(result)
-        // })
-        // app.patch('/updateClass/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     console.log(req.params.id);
-        //     console.log('req.body',req.body);
-        //     const filter = { _id: new ObjectId(id) };
-        //     const updateDoc = { $set: {
-        //         role: req.body.role
-        //     } };
-        
-        //     try {
-        //         const result = await classCollection.updateMany(filter, updateDoc);
-        //         res.send(result);
-        //     } catch (error) {
-        //         console.error('Error updating documents:', error);
-        //         res.status(500).send('Error updating documents');
-        //     }
-        // });
-        
         app.get('/classes', async (req, res) => {
             console.log(req.params.type);
             
@@ -239,37 +198,22 @@ async function run() {
                 res.status(500).send('Error fetching data');
             }
         });
+
+        app.get('/selected/:id', async (req, res) => {
+            const selectedId = req.params.id;
+            
+            try {
+                const result = await selectedCollection.findOne({ selectedId });
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                res.status(500).send('Error fetching data');
+            }
+        });
         
+       
         
-        // app.get('/role/:id', async (req, res) => {
-        //     const email = req.params.email;
-        
-        //     try {
-        //         const result = await rolesCollection.findOne({ _id: id });
-        //         res.send(result);
-        //     } catch (error) {
-        //         console.error('Error fetching data:', error);
-        //         res.status(500).send('Error fetching data');
-        //     }
-        // });
-        
-        
-        // app.get('/role/:id', async (req, res) => {
-        //     const id = req.params.id;
-        
-        //     try {
-        //         const result = await rolesCollection.findById(id);
-        //         if (result) {
-        //             res.send(result);
-        //         } else {
-        //             res.status(404).send('Data not found');
-        //         }
-        //     } catch (error) {
-        //         console.error('Error fetching data:', error);
-        //         res.status(500).send('Error fetching data');
-        //     }
-        // });
-        
+     
         
         
         app.get('/myClasses/:email', async (req, res) => {
@@ -283,6 +227,13 @@ async function run() {
                 res.send(result);
             }
             
+        })
+
+        app.delete('/selected/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id)}
+            const result = await selectedCollection.deleteOne(query);
+            res.send(result)
         })
         
         
