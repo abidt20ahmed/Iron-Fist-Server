@@ -48,7 +48,15 @@ async function run() {
             console.log('req',req);
             res.send(result)
         });
-        
+
+        app.post('/postEnrolled', async (req, res) => {
+            const body = req.body;
+            console.log('selected body:',body);
+            const result = await enrolledCollection.insertOne(body);
+            console.log('req',req);
+            res.send(result)
+        });
+    
 
         app.post('/postRoles/:email', async (req, res) => {
             const body = req.body;
