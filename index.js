@@ -49,7 +49,7 @@ async function run() {
             res.send(result)
         });
         
-     
+
         app.post('/postRoles/:email', async (req, res) => {
             const body = req.body;
             const email = req.params.email;
@@ -144,6 +144,9 @@ async function run() {
             res.send(result);
         });
         
+        
+
+        
         app.get('/classes', async (req, res) => {
             console.log(req.params.type);
             
@@ -199,9 +202,22 @@ async function run() {
             }
         });
 
+
+        app.get('/selected/id/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            try {
+                const result = await selectedCollection.findOne({ _id: new ObjectId(id) });
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                res.status(500).send('Error fetching data');
+            }
+        });
+
         app.get('/selected/:id', async (req, res) => {
             const selectedId = req.params.id;
-            
+            console.log(selectedId);
             try {
                 const result = await selectedCollection.findOne({ selectedId });
                 res.send(result);
@@ -212,8 +228,7 @@ async function run() {
         });
         
        
-        
-     
+
         
         
         app.get('/myClasses/:email', async (req, res) => {
@@ -231,6 +246,7 @@ async function run() {
 
         app.delete('/selected/:id', async (req, res) => {
             const id = req.params.id;
+            console.log(id);
             const query = { _id: new ObjectId(id)}
             const result = await selectedCollection.deleteOne(query);
             res.send(result)
