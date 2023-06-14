@@ -43,7 +43,7 @@ async function run() {
 
         app.post('/postSelected', async (req, res) => {
             const body = req.body;
-            console.log('selected body:',body);
+            console.log('selected body:' );
             const result = await selectedCollection.insertOne(body);
             console.log('req',req);
             res.send(result)
@@ -51,10 +51,16 @@ async function run() {
 
         app.post('/postEnrolled', async (req, res) => {
             const body = req.body;
-            console.log('selected body:',body);
+            // console.log('selected body:',body);
+            const removeOrder = await selectedCollection.deleteOne({_id: new ObjectId(body.enrolledId)})
             const result = await enrolledCollection.insertOne(body);
             console.log('req',req);
-            res.send(result)
+            const updateClass = await classCollection.updateOne({
+                _id: new ObjectId(body.classId)
+            }, {
+                $inc:{ seats: -1, enrolled: 1 }
+            })
+            res.send({result, removeOrder, updateClass})
         });
     
 
@@ -158,10 +164,11 @@ async function run() {
         app.get('/classes', async (req, res) => {
             console.log(req.params.type);
             
-            const result = await classCollection.find({}).sort({ date: -1 }).toArray();
+            const result = await classCollection.find({}).sort({ enrolled: 1 }).toArray();
             res.send(result);
             
         })
+        
         app.get('/roles', async (req, res) => {
             console.log(req.params.type);
             
@@ -178,15 +185,46 @@ async function run() {
             res.send(result);
             
         })     
+        app.get('/selected/:email', async (req, res) => {
+            console.log(req.params.type);
+            const email = req.params.email
+            const result = await selectedCollection.find({studentEmail: email}).sort({ date: -1 }).toArray();
+            console.log(result);
+            res.send(result);
+            
+        })     
+
+        app.get('/enrolled', async (req, res) => {
+            console.log(req.params.type);
+            
+            const result = await enrolledCollection.find({}).sort({ date: -1 }).toArray();
+            console.log(result);
+            res.send(result);
+            
+        })      
         
-        //? app.get('/roles/:email', async (req, res) => {
-        //?    console.log(req.params.type);
-        //?    const email = req.params.email
-        //?    const result = await rolesCollection.findOne({ email: new ObjectId(email) });
-        //?    res.send(result);
+        app.get('/enrolled/:email', async (req, res) => {
+            console.log(req.params.email);
+            const email = req.params.email
+            const result = await enrolledCollection.find({email: email}).sort({ date: -1 }).toArray();
+            console.log(result);
+            res.send(result);
+            
+        })     
+    
         
-        // })
-        
+        app.get('/classes/:id', async (req, res) => {
+            const id = req.params.id;
+            
+            try {
+                const result = await classCollection.findOne({ _id: new ObjectId(id) });
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                res.status(500).send('Error fetching data');
+            }
+        });
+
         app.get('/role/:id', async (req, res) => {
             const id = req.params.id;
             
@@ -198,6 +236,7 @@ async function run() {
                 res.status(500).send('Error fetching data');
             }
         });
+
         app.get('/role/email/:email', async (req, res) => {
             const email = req.params.email;
             
@@ -223,9 +262,9 @@ async function run() {
             }
         });
 
-        app.get('/selected/:id', async (req, res) => {
+        app.get('/selectedId/:id', async (req, res) => {
             const selectedId = req.params.id;
-            console.log(selectedId);
+            console.log('selectedId', selectedId);
             try {
                 const result = await selectedCollection.findOne({ selectedId });
                 res.send(result);
@@ -251,61 +290,17 @@ async function run() {
             }
             
         })
+     
 
         app.delete('/selected/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
+            // console.log(id);
             const query = { _id: new ObjectId(id)}
             const result = await selectedCollection.deleteOne(query);
             res.send(result)
         })
         
         
-        /* const indexKeys = { productName: 1, brand: 1 };
-        const indexOptions = { name: 'brandName '};
-        const result = await toyCollection.createIndex(indexKeys, indexOptions)
-        
-        app.get('/allToy/:productName', async (req, res) => {
-            const searchText = req.params.productName;
-            // const result = await toyCollection.find({ productName: req.params.productName}).toArray();
-            const result = await toyCollection.find({
-                $or: [
-                    { productName: {$regex: searchText, $options: 'i'}},
-                    { brand: { $regex: searchText, $options: 'i'}}
-                ]
-            }).toArray();
-            res.send(result);
-        })
-        
-        
-        app.get('/myToys/:email', async (req, res) => {
-            if(req.query.sort == 'asc'){
-                const result = await toyCollection.find({ email: req.params.email}).sort({ price: 1 }).toArray();
-                res.send(result);
-                
-            }
-            else{
-                const result = await toyCollection.find({ email: req.params.email}).sort({ price: -1 }).toArray();
-                res.send(result);
-            }
-            
-        })
-        
-        
-        app.get('/details/:id', async (req, res) => {
-            console.log(req.params.id);
-            const id = req.params.id;
-            const result = await toyCollection.findOne({_id: new ObjectId(id)});
-            res.send(result)
-        })
-        
-        
-        app.delete('/myToys/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id)}
-            const result = await toyCollection.deleteOne(query);
-            res.send(result)
-        }) */
         
         
         // Send a ping to confirm a successful connection
